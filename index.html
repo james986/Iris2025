@@ -16,24 +16,23 @@
         .marquee {
             white-space: nowrap;
             position: relative;
-            animation: marquee 15s linear infinite; /* 调慢滚动速度 */
+            animation: marquee 30s linear infinite; /* 延长动画时间 */
             color: #ff69b4;
             font-family: 'Microsoft YaHei', sans-serif;
-            font-size: 6vw; /* 放大字体 */
-            text-shadow: 2px 2px 8px rgba(255,105,180,0.7); /* 增强阴影 */
-            font-weight: bold; /* 加粗字体 */
+            font-size: 6vw;
+            text-shadow: 2px 2px 8px rgba(255,105,180,0.7);
+            font-weight: bold;
         }
 
         @keyframes marquee {
             0%   { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+            100% { transform: translateX(-150%); } /* 调整为-150%确保完全滚动 */
         }
 
         #audioPlayer {
             display: none;
         }
 
-        /* 加载完成提示 */
         .loader {
             color: white;
             position: fixed;
@@ -44,9 +43,10 @@
 </head>
 <body>
     <div class="loader">加载中...</div>
-    <div class="marquee">🦊太太，新年快乐！🎉 2025 不期待，不假设，不强求。🌹 把每一天都活成自己喜欢的模样！🎊</div>
+    <div class="marquee">🦊太太，新年快乐！🎉 不期待，不假设，不强求。🌹 2025 把每一天都活成自己喜欢的模样！🎊</div>
     <audio id="audioPlayer" loop>
-        <source src="https://github.com/james986/Iris2025/blob/main/Nocturn%20(GT7%20Opening%20Version).mp3" type="audio/mpeg">
+        <!-- 修正音频文件地址 -->
+        <source src="https://raw.githubusercontent.com/james986/Iris2025/main/Nocturn%20(GT7%20Opening%20Version).mp3" type="audio/mpeg">
         您的浏览器不支持音频播放
     </audio>
 
@@ -58,39 +58,31 @@
             // 显示加载提示
             loader.style.display = 'block';
 
-            // 自动播放尝试
-            const playPromise = audio.play().catch(error => {
-                // 如果自动播放被阻止
-                loader.textContent = '点击任意位置播放音乐';
-                loader.style.display = 'block';
-                
-                // 点击后播放
-                document.body.addEventListener('click', () => {
-                    audio.play();
-                    loader.style.display = 'none';
-                }, { once: true });
-            });
-
-            // 成功播放后隐藏提示
-            if (playPromise) {
-                playPromise.then(() => {
-                    loader.style.display = 'none';
-                });
-            }
-
-            // 移动端触摸支持
-            document.body.addEventListener('touchstart', () => {
-                if (audio.paused) {
-                    audio.play();
-                    loader.style.display = 'none';
-                }
-            }, { once: true });
-
             // 预加载优化
             audio.preload = 'auto';
+            
+            // 音频加载完成处理
             audio.onloadeddata = () => {
                 loader.style.display = 'none';
+                
+                // 自动播放尝试
+                audio.play().catch(() => {
+                    loader.textContent = '点击任意位置开始播放';
+                    loader.style.display = 'block';
+                });
             };
+
+            // 统一交互处理
+            const playAudio = () => {
+                audio.play();
+                loader.style.display = 'none';
+                document.body.removeEventListener('click', playAudio);
+                document.body.removeEventListener('touchstart', playAudio);
+            };
+
+            // 添加交互监听
+            document.body.addEventListener('click', playAudio);
+            document.body.addEventListener('touchstart', playAudio);
         });
     </script>
 </body>
